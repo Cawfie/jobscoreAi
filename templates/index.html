@@ -1,0 +1,274 @@
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobSmart AI Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        pre {
+            background-color: #f4f4f4;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px; /* Limit height for long outputs */
+            overflow-y: auto; /* Add scroll for long outputs */
+        }
+        .match-card {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .match-score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #10b981; /* Green for good score */
+        }
+        .match-score.low {
+            color: #ef4444; /* Red for low score */
+        }
+        .match-score.medium {
+            color: #f59e0b; /* Orange for medium score */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white p-8 rounded-lg shadow-lg max-w-2xl w-full text-center">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800">Hello, JobSmart AI Assistant!</h1>
+        <p class="text-lg text-gray-700 mb-4">MySQL Database is configured and ready.</p>
+        <div class="space-y-3 mb-8">
+            <a href="/upload" class="block w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out">
+                Upload a Resume
+            </a>
+            <a href="/list_resumes" class="block w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition duration-150 ease-in-out">
+                List All Resumes
+            </a>
+            <a href="/add_job_description" class="block w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-150 ease-in-out">
+                Add New Job Description
+            </a>
+            <a href="/list_job_descriptions" class="block w-full bg-orange-600 text-white py-2 px-4 rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition duration-150 ease-in-out">
+                List All Job Descriptions
+            </a>
+        </div>
+
+        <hr class="my-6 border-gray-300">
+
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">Gemini AI Features</h2>
+        <p class="text-sm text-gray-600 mb-4">
+            Enter a Resume ID (from "/list_resumes") to parse or view its AI-extracted data.
+        </p>
+
+        <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 mb-6">
+            <input type="number" id="resumeIdInput" placeholder="Enter Resume ID" class="flex-grow px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center md:text-left" min="1">
+            <button id="parseButton" class="w-full md:w-auto bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-150 ease-in-out">
+                Parse Resume
+            </button>
+            <button id="viewButton" class="w-full md:w-auto bg-teal-600 text-white py-2 px-4 rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition duration-150 ease-in-out">
+                View Parsed Result
+            </button>
+        </div>
+
+        <div id="resultArea" class="mt-6 text-left">
+            <h3 class="text-xl font-semibold mb-2 text-gray-800">Result:</h3>
+            <pre id="jsonResult" class="text-sm text-gray-800"></pre>
+            <p id="message" class="text-sm text-gray-700 mt-2"></p>
+        </div>
+
+        <hr class="my-6 border-gray-300">
+
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">Job Matching AI</h2>
+        <p class="text-sm text-gray-600 mb-4">
+            Enter a Resume ID to find the best matching jobs from your database.
+            (Ensure the resume is parsed and job descriptions are added first!)
+        </p>
+
+        <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 mb-6">
+            <input type="number" id="matchResumeIdInput" placeholder="Enter Resume ID for Matching" class="flex-grow px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center md:text-left" min="1">
+            <button id="matchJobsButton" class="w-full md:w-auto bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition duration-150 ease-in-out">
+                Find Best Jobs
+            </button>
+            <button id="viewMatchesButton" class="w-full md:w-auto bg-cyan-600 text-white py-2 px-4 rounded-md hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition duration-150 ease-in-out">
+                View Saved Matches
+            </button>
+        </div>
+
+        <div id="matchResultArea" class="mt-6 text-left">
+            <h3 class="text-xl font-semibold mb-2 text-gray-800">Matching Results:</h3>
+            <div id="matchResultsList" class="space-y-4">
+                <!-- Match results will be displayed here -->
+            </div>
+            <p id="matchMessage" class="text-sm text-gray-700 mt-2"></p>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Resume Parsing/Viewing Logic (Existing) ---
+        document.getElementById('parseButton').addEventListener('click', async () => {
+            const resumeId = document.getElementById('resumeIdInput').value;
+            const jsonResultDiv = document.getElementById('jsonResult');
+            const messageDiv = document.getElementById('message');
+
+            jsonResultDiv.textContent = 'Processing... Please wait, AI parsing can take a few seconds.';
+            messageDiv.textContent = '';
+
+            if (!resumeId) {
+                jsonResultDiv.textContent = '';
+                messageDiv.textContent = 'Please enter a Resume ID.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/parse_resume/${resumeId}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageDiv.textContent = data.message || 'Parsing successful!';
+                    jsonResultDiv.textContent = JSON.stringify(data.parsed_data || data, null, 2);
+                } else {
+                    messageDiv.textContent = `Error: ${data.error || 'Unknown error during parsing.'}`;
+                    jsonResultDiv.textContent = '';
+                }
+            } catch (error) {
+                messageDiv.textContent = `Network or unexpected error: ${error.message}`;
+                jsonResultDiv.textContent = '';
+                console.error('Error:', error);
+            }
+        });
+
+        document.getElementById('viewButton').addEventListener('click', async () => {
+            const resumeId = document.getElementById('resumeIdInput').value;
+            const jsonResultDiv = document.getElementById('jsonResult');
+            const messageDiv = document.getElementById('message');
+
+            jsonResultDiv.textContent = 'Fetching parsed data...';
+            messageDiv.textContent = '';
+
+            if (!resumeId) {
+                jsonResultDiv.textContent = '';
+                messageDiv.textContent = 'Please enter a Resume ID.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/view_parsed_resume/${resumeId}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageDiv.textContent = data.message || 'Parsed data retrieved successfully!';
+                    jsonResultDiv.textContent = JSON.stringify(data.parsed_data || data, null, 2);
+                } else {
+                    messageDiv.textContent = `Error: ${data.error || 'Unknown error viewing parsed data.'}`;
+                    jsonResultDiv.textContent = '';
+                }
+            } catch (error) {
+                messageDiv.textContent = `Network or unexpected error: ${error.message}`;
+                jsonResultDiv.textContent = '';
+                console.error('Error:', error);
+            }
+        });
+
+        // --- Job Matching Logic (NEW) ---
+        document.getElementById('matchJobsButton').addEventListener('click', async () => {
+            const resumeId = document.getElementById('matchResumeIdInput').value;
+            const matchResultsListDiv = document.getElementById('matchResultsList');
+            const matchMessageDiv = document.getElementById('matchMessage');
+
+            matchResultsListDiv.innerHTML = ''; // Clear previous results
+            matchMessageDiv.textContent = 'Initiating matching process... This may take a while depending on the number of job descriptions.';
+
+            if (!resumeId) {
+                matchMessageDiv.textContent = 'Please enter a Resume ID for matching.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/match_resume_to_all_jobs/${resumeId}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    matchMessageDiv.textContent = data.message;
+                    if (data.matches && data.matches.length > 0) {
+                        data.matches.forEach(match => {
+                            const scoreClass = match.match_score >= 75 ? 'text-green-600' :
+                                               match.match_score >= 50 ? 'text-yellow-600' :
+                                               'text-red-600';
+
+                            const matchCard = `
+                                <div class="match-card">
+                                    <h4 class="text-lg font-semibold text-gray-900">${match.job_title} (${match.company})</h4>
+                                    <p class="text-gray-700">Match Score: <span class="${scoreClass}">${match.match_score}%</span></p>
+                                    <p class="text-gray-600 text-sm mt-1"><strong>Justification:</strong> ${match.justification}</p>
+                                    <p class="text-gray-600 text-sm mt-1"><strong>Aligned Skills:</strong> ${match.aligned_skills.join(', ') || 'N/A'}</p>
+                                    <p class="text-gray-600 text-sm mt-1"><strong>Missing Skills:</strong> ${match.missing_skills.join(', ') || 'None'}</p>
+                                </div>
+                            `;
+                            matchResultsListDiv.innerHTML += matchCard;
+                        });
+                    } else {
+                        matchResultsListDiv.textContent = 'No matches found or processed.';
+                    }
+                } else {
+                    matchMessageDiv.textContent = `Error: ${data.error || 'Unknown error during matching.'}`;
+                }
+            } catch (error) {
+                matchMessageDiv.textContent = `Network or unexpected error: ${error.message}`;
+                console.error('Error:', error);
+            }
+        });
+
+        document.getElementById('viewMatchesButton').addEventListener('click', async () => {
+            const resumeId = document.getElementById('matchResumeIdInput').value;
+            const matchResultsListDiv = document.getElementById('matchResultsList');
+            const matchMessageDiv = document.getElementById('matchMessage');
+
+            matchResultsListDiv.innerHTML = ''; // Clear previous results
+            matchMessageDiv.textContent = 'Fetching saved matches...';
+
+            if (!resumeId) {
+                matchMessageDiv.textContent = 'Please enter a Resume ID to view saved matches.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/view_matches_for_resume/${resumeId}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (data.matches && data.matches.length > 0) {
+                        matchMessageDiv.textContent = `Showing ${data.matches.length} saved matches for Resume ID ${resumeId}.`;
+                        data.matches.forEach(match => {
+                            const scoreClass = match.match_score >= 75 ? 'text-green-600' :
+                                               match.match_score >= 50 ? 'text-yellow-600' :
+                                               'text-red-600';
+
+                            const matchCard = `
+                                <div class="match-card">
+                                    <h4 class="text-lg font-semibold text-gray-900">${match.job_title} (${match.company})</h4>
+                                    <p class="text-gray-700">Match Score: <span class="${scoreClass}">${match.match_score}%</span></p>
+                                    <p class="text-gray-600 text-sm mt-1"><strong>Justification:</strong> ${match.justification}</p>
+                                    <p class="text-gray-600 text-sm mt-1"><strong>Aligned Skills:</strong> ${match.aligned_skills.join(', ') || 'N/A'}</p>
+                                    <p class="text-gray-600 text-sm mt-1"><strong>Missing Skills:</strong> ${match.missing_skills.join(', ') || 'None'}</p>
+                                    <p class="text-gray-500 text-xs mt-1">Matched on: ${new Date(match.match_date).toLocaleString()}</p>
+                                </div>
+                            `;
+                            matchResultsListDiv.innerHTML += matchCard;
+                        });
+                    } else {
+                        matchMessageDiv.textContent = 'No saved matches found for this Resume ID. Please run "Find Best Jobs" first.';
+                    }
+                } else {
+                    matchMessageDiv.textContent = `Error: ${data.error || 'Unknown error viewing saved matches.'}`;
+                }
+            } catch (error) {
+                matchMessageDiv.textContent = `Network or unexpected error: ${error.message}`;
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

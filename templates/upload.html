@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Resume</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Upload Your Resume</h2>
+        <form action="/upload_resume" method="post" enctype="multipart/form-data" class="space-y-4">
+            <div>
+                <label for="resume_file" class="block text-sm font-medium text-gray-700 mb-1">Select Resume File (TXT, PDF, DOCX)</label>
+                <input type="file" name="resume_file" id="resume_file" accept=".txt,.pdf,.docx" class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer bg-gray-50 focus:outline-none focus:border-blue-500 focus:ring-blue-500">
+                <p class="mt-1 text-xs text-gray-500">Please upload a .txt, .pdf, or .docx file.</p>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out">
+                Upload Resume
+            </button>
+        </form>
+        <p class="mt-6 text-center text-gray-600">
+            <a href="/" class="text-blue-600 hover:text-blue-800">Back to Home</a>
+        </p>
+    </div>
+</body>
+</html>
