@@ -1,18 +1,18 @@
-from flask import Flask, request, jsonify, render_template
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, request, jsonify, render_template 
+from flask_sqlalchemy import SQLAlchemy #sqlalchemy used for ORm (object rel mappin)
 import os
-import docx 
-import PyPDF2 
+import docx #package thingy for docx
+import PyPDF2 # this package thingy for pdf
 import requests # req lib for api, using gemini so need ts
 import json
 
 app=Flask(__name__)
-#app config for sql database ig.
+#app config for sql database ig. the Mysql+mysqlconnector is the driver and the flaskuser and pass for loggin in to the mysql db (workbench)
 app.config['SQLALCHEMY_DATABASE_URI']='mysql+mysqlconnector://flaskuser:8xt12as13@localHost:3306/jobsh_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATION']=False
 
 #gemini api key syncin :)
-GEMINI_API_KEY='AIzaSyBqpJhTMWOpJ9hOp02VQCM_CapdAs1pfJA'
+GEMINI_API_KEY='Apikey' #use ur own api key, i aint giving mine 
 GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
 
 db = SQLAlchemy(app)
@@ -85,7 +85,7 @@ def extract_text_from_pdf(pdf_file):
         full_text.append(page.extract_text())
     return '\n'.join(full_text)
 
-# --- Gemini API Interaction Functions ---
+# --- Gemini API Interaction through the prompt (content type be json)
 def parse_resume_with_gemini(resume_text):
     prompt = f"""
     You are an expert resume parser. Analyze the following resume text and extract key information into a structured JSON format.
@@ -321,7 +321,7 @@ def match_resume_to_job_with_gemini(parsed_resume_data, job_description_text):
         return {"error": f"An unexpected error occurred during matching: {e}"}
 
 
-# routes bruv
+# these the url routes that are used
 
 @app.route('/')
 def home():
@@ -473,7 +473,6 @@ def list_job_descriptions():
 
 @app.route('/match_resume_to_all_jobs/<int:resume_id>')
 def match_resume_to_all_jobs(resume_id):
-    # 1. Fetch the parsed resume data
     parsed_resume = ParsedResume.query.filter_by(resume_id=resume_id).first()
     if not parsed_resume:
         return jsonify({"error": f"Parsed data for Resume ID {resume_id} not found. Please parse the resume first."}), 404
@@ -565,6 +564,7 @@ def view_matches_for_resume(resume_id):
         })
     return jsonify({"resume_id": resume_id, "matches": results_list}), 200
 
+# the main stuff
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
